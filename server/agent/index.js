@@ -66,14 +66,14 @@ app.post('/generate', async (req, res) => {
       return res.status(500).json({ error: 'No valid response from agent' });
     }
   } catch (error) {
-    // Reset the processing flag if an error occurs
+    
     isRequestProcessing = false;
     logError(`Error invoking agent: ${error.message}`);
     return res.status(500).json({ error: error.message });
   }
 });
 
-// Start server
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
