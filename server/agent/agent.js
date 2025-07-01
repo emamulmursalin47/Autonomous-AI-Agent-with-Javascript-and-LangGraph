@@ -4,7 +4,7 @@ import { z } from "zod";
 import { MemorySaver } from "@langchain/langgraph";
 import { tool } from "@langchain/core/tools";
 
-// Weather tool implementation (fixed schema to match usage)
+// Weather tool implementation 
 const weatherTool = tool(
   async ({ query }) => {
     console.log("Weather query:", query);
@@ -29,49 +29,49 @@ const model = new ChatGroq({
 const checkpointSaver = new MemorySaver();
 
 // Create the agent
-const agent = createReactAgent({
+export const agent = createReactAgent({
   llm: model,
   tools: [weatherTool],
   checkpointSaver,
 });
 
-// Main execution
-(async () => {
-  try {
-    // First query
-    const result = await agent.invoke(
-      {
-        messages: [
-          {
-            role: "user",
-            content: "what's the weather in Tokyo?",
-          },
-        ],
-      },
-      {
-        configurable: { thread_id: "42" },
-      }
-    );
+// // Main execution
+// (async () => {
+//   try {
+//     // First query
+//     const result = await agent.invoke(
+//       {
+//         messages: [
+//           {
+//             role: "user",
+//             content: "what's the weather in Tokyo?",
+//           },
+//         ],
+//       },
+//       {
+//         configurable: { thread_id: "42" },
+//       }
+//     );
 
-    console.log(result.messages.at(-1)?.content);
+//     console.log(result.messages.at(-1)?.content);
 
-    // Follow-up query
-    const followup = await agent.invoke(
-      {
-        messages: [
-          {
-            role: "user",
-            content: "what city is that for?",
-          },
-        ],
-      },
-      {
-        configurable: { thread_id: "42" }, // Same thread ID maintains conversation
-      }
-    );
+//     // Follow-up query
+//     const followup = await agent.invoke(
+//       {
+//         messages: [
+//           {
+//             role: "user",
+//             content: "what city is that for?",
+//           },
+//         ],
+//       },
+//       {
+//         configurable: { thread_id: "42" }, // Same thread ID maintains conversation
+//       }
+//     );
 
-    console.log("Follow up:", followup.messages.at(-1)?.content);
-  } catch (error) {
-    console.error("Error:", error);
-  }
-})();
+//     console.log("Follow up:", followup.messages.at(-1)?.content);
+//   } catch (error) {
+//     console.error("Error:", error);
+//   }
+// })();
