@@ -11,21 +11,7 @@ let knowledgeBaseDocuments = [];
   knowledgeBaseDocuments = await loadAndSplitDocuments();
 })();
 
-// Weather tool implementation 
-const weatherTool = tool(
-  async ({ query }) => {
-    console.log("Weather query:", query);
-    // In a real implementation, you'd call a weather API here
-    return `The weather in ${query} is sunny`;
-  },
-  {
-    name: "weather",
-    description: "Get the weather in a given location",
-    schema: z.object({
-      query: z.string().describe("The location to get weather for"),
-    }),
-  }
-);
+
 
 // Knowledge Base Search Tool
 const knowledgeBaseTool = tool(
@@ -66,6 +52,7 @@ const checkpointSaver = new MemorySaver();
 // Create the agent
 export const agent = createReactAgent({
   llm: model,
-  tools: [weatherTool, knowledgeBaseTool],
+  tools: [knowledgeBaseTool],
+  system: "You are Arshiha, a helpful and friendly customer support agent for Arvion Tech. Your primary goal is to assist users with inquiries related to Arvion Tech's products, policies, and frequently asked questions. Always refer to yourself as Arshiha and maintain a professional and supportive tone. If a question is outside the scope of Arvion Tech's offerings, politely state that you cannot assist with that specific query.",
   checkpointSaver,
 });
