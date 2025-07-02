@@ -1,42 +1,46 @@
-import 'dotenv/config';
+// ingest.js
 import { DirectoryLoader } from "langchain/document_loaders/fs/directory";
 import { TextLoader } from "langchain/document_loaders/fs/text";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import { setKnowledgeBaseDocuments } from "./agent.js";
 
 const KNOWLEDGE_BASE_PATH = "./knowledge_base";
 
-export async function loadAndSplitDocuments() {
+async function loadAndSplitDocuments() {
   try {
-    console.log("--- Starting document loading and splitting ---");
+    console.log("[INFO] Loading and splitting documents...");
 
-    const loader = new DirectoryLoader(
-      KNOWLEDGE_BASE_PATH,
-      {
-        ".txt": (path) => new TextLoader(path),
-      },
-      true
-    );
+    const loader = new DirectoryLoader(KNOWLEDGE_BASE_PATH, {
+      ".txt": (path) => new TextLoader(path),
+    }, true);
 
-    const docs = await loader.load();
-    console.log(`Loaded ${docs.length} documents from ${KNOWLEDGE_BASE_PATH}`);
+    const rawDocs = await loader.load();
+    console.log(`[INFO] Loaded ${rawDocs.length} documents.`);
 
-    if (docs.length === 0) {
-      console.log("No documents found. Exiting.");
-      return [];
-    }
+    if (!rawDocs.length) return [];
 
-    const textSplitter = new RecursiveCharacterTextSplitter({
+    const splitter = new RecursiveCharacterTextSplitter({
       chunkSize: 1000,
-      chunkOverlap: 200
+      chunkOverlap: 200,
     });
-    const splitDocs = await textSplitter.splitDocuments(docs);
-    console.log(`Split documents into ${splitDocs.length} chunks.`);
 
-    console.log("--- Document loading and splitting complete! ---");
+    const splitDocs = await splitter.splitDocuments(rawDocs);
+    console.log(`[INFO] Split into ${splitDocs.length} document chunks.`);
+
     return splitDocs;
-
-  } catch (error) {
-    console.error("An error occurred during document loading and splitting:", error);
-    process.exit(1);
+  } catch (err) {
+    console.error("[ERROR] Failed to load or split documents:", err);
+    throw err;
   }
 }
+
+// Load documents and set them in the agent
+(async () => {
+  try {
+    const docs = await loadAndSplitDocuments();
+    setKnowledgeBaseDocuments(docs);
+    console.log("[INFO] Knowledge base loaded and set in agent.");
+  } catch (error) {
+    console.error("[ERROR] Failed to initialize knowledge base for agent:", error);
+  }
+})();

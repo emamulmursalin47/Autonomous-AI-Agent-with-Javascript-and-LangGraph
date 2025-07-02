@@ -1,32 +1,46 @@
-// Updated agent.js
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { ChatGroq } from "@langchain/groq";
 import { z } from "zod";
 import { MemorySaver } from "@langchain/langgraph";
 import { tool } from "@langchain/core/tools";
-import { loadAndSplitDocuments } from "./ingest.js";
 
-// Load knowledge base documents once
 let knowledgeBaseDocuments = [];
-(async () => {
-  knowledgeBaseDocuments = await loadAndSplitDocuments();
-})();
+
+export function setKnowledgeBaseDocuments(docs) {
+  knowledgeBaseDocuments = docs;
+}
 
 // Knowledge Base Search Tool
 const knowledgeBaseTool = tool(
   async ({ query }) => {
-    console.log("Knowledge Base query:", query);
+    console.log(`[KnowledgeBaseTool] Query received: "${query}"`);
     if (knowledgeBaseDocuments.length === 0) {
+      console.log("[KnowledgeBaseTool] Knowledge base is empty.");
       return "__NO_RELEVANT_INFO__";
     }
 
-    const relevantDocs = knowledgeBaseDocuments.filter(doc => 
-      doc.pageContent.toLowerCase().includes(query.toLowerCase())
+    const queryLower = query.toLowerCase();
+    const queryWords = queryLower.split(/\s+/).filter(word => word.length > 2);
+
+    // Exact match search
+    let relevantDocs = knowledgeBaseDocuments.filter(doc =>
+      doc.pageContent.toLowerCase().includes(queryLower)
     );
 
+    // If no exact matches, try keyword matching
+    if (relevantDocs.length === 0 && queryWords.length > 0) {
+      relevantDocs = knowledgeBaseDocuments.filter(doc => {
+        const content = doc.pageContent.toLowerCase();
+        return queryWords.some(word => content.includes(word));
+      });
+    }
+
     if (relevantDocs.length > 0) {
-      return relevantDocs.map(doc => doc.pageContent).join("\n---\n");
+      const result = relevantDocs.map(doc => doc.pageContent).join("\n---\n");
+      console.log(`[KnowledgeBaseTool] Found ${relevantDocs.length} relevant documents. Returning snippet.`);
+      return result;
     } else {
+      console.log("[KnowledgeBaseTool] No relevant information found for query.");
       return "__NO_RELEVANT_INFO__";
     }
   },
@@ -63,7 +77,7 @@ export const agent = createReactAgent({
 
 7.For all other inquiries, focus solely on helping the user with Arvion Tech-related topics.
 
-8. If the knowledge base search tool returns '__NO_RELEVANT_INFO__', you MUST respond with '__NO_RELEVANT_INFO__' and nothing else.`
+8. For any query that might require information from the knowledge base, you MUST use the `knowledge_base_search` tool.
 
-  
+9. If the knowledge base search tool returns '__NO_RELEVANT_INFO__', you MUST respond with '__NO_RELEVANT_INFO__' and nothing else.`
 });

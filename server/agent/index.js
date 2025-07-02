@@ -1,11 +1,11 @@
-// index.js
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import { agent } from './agent.js';
+import { agent, setKnowledgeBaseDocuments } from './agent.js';
+import { loadAndSplitDocuments } from './ingest.js';
 
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 app.use(express.static('public'));
 app.use(express.json());
@@ -131,12 +131,8 @@ class PersonaGuard {
       return "As Arshiha from Arvion Tech, I focus specifically on helping you with our products and services. What would you like to know about Arvion Tech?";
     }
 
-    // Check if response indicates no knowledge
-    if (cleanResponse.includes('__NO_RELEVANT_INFO__') || 
-        cleanResponse.toLowerCase().includes("i don't have") ||
-        cleanResponse.toLowerCase().includes("i don't know") ||
-        cleanResponse.toLowerCase().includes("i'm not sure") ||
-        cleanResponse.toLowerCase().includes("i cannot find")) {
+    // If the agent explicitly says no relevant info, use the fallback
+    if (cleanResponse.includes('__NO_RELEVANT_INFO__')) {
       return this.fallbackResponse;
     }
 
@@ -206,4 +202,3 @@ app.post('/generate', async (req, res) => {
 app.listen(port, () => {
   console.log(`Arshiha Customer Support Agent running on port ${port}`);
 });
-
