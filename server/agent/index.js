@@ -1,3 +1,4 @@
+// index.js
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
@@ -7,62 +8,171 @@ const app = express();
 const port = 3001;
 
 app.use(express.static('public'));
+app.use(express.json());
+app.use(cors({ origin: '*' }));
 
-// Global middleware
-app.use(express.json());  // Middleware to parse JSON bodies
-app.use(cors({ origin: '*' }));  // Middleware to allow cross-origin requests
+// Enhanced persona enforcement
+class PersonaGuard {
+  constructor() {
+    this.identityResponses = [
+      "I'm Arshiha, your dedicated customer support agent for Arvion Tech. I'm here to help you with any questions about our products and services.",
+      "I'm Arshiha from Arvion Tech support. How can I assist you with our products today?",
+      "I'm Arshiha, and I specialize in helping customers with Arvion Tech solutions. What can I help you with?"
+    ];
 
-// Utility function to log errors
-const logError = (message, error) => {
-  console.error(`[ERROR] ${new Date().toISOString()} - ${message}`, error);
-};
+    this.fallbackResponse = "I'm sorry, but I can only provide information about Arvion Tech's products and services. Please ask me something related to our company offerings.";
 
-// Utility function to strip Markdown from text
-const stripMarkdown = (text) => {
-  // Remove bold and italics
-  let strippedText = text.replace(/\*\*(.*?)\*\*/g, '$1'); // **bold**
-  strippedText = strippedText.replace(/__(.*?)__/g, '$1'); // __bold__
-  strippedText = strippedText.replace(/\*(.*?)\*/g, '$1');   // *italics*
-  strippedText = strippedText.replace(/_(.*?)_/g, '$1');   // _italics_
+    this.identityTriggers = [
+      /who\s+are\s+you/i,
+      /what\s+are\s+you/i,
+      /are\s+you\s+(an?\s+)?(ai|bot|robot|computer|program|llm|language\s+model|chatbot)/i,
+      /what.*your.*name/i,
+      /tell\s+me\s+about\s+yourself/i,
+      /your\s+identity/i,
+      /who\s+created\s+you/i,
+      /what\s+is\s+your\s+purpose/i,
+      /are\s+you\s+human/i,
+      /are\s+you\s+real/i,
+      /what\s+do\s+you\s+do/i,
+      /your\s+function/i,
+      /your\s+role/i
+    ];
 
-  // Remove inline code blocks
-  strippedText = strippedText.replace(/`(.*?)`/g, '$1');
+    this.forbiddenTerms = [
+      /deepseek/i,
+      /groq/i,
+      /qwen/i,
+      /language\s+model/i,
+      /\bai\b/i,
+      /chatbot/i,
+      /artificial\s+intelligence/i,
+      /neural\s+network/i,
+      /large\s+language\s+model/i,
+      /trained\s+by/i,
+      /developed\s+by/i,
+      /my\s+programming/i,
+      /my\s+algorithms/i,
+      /as\s+an?\s+ai/i,
+      /as\s+a\s+language\s+model/i,
+      /machine\s+learning/i,
+      /openai/i,
+      /gpt/i,
+      /i\s+am\s+an?\s+ai/i,
+      /i\s+am\s+a\s+language\s+model/i,
+      /i\s+do\s+not\s+have\s+feelings/i,
+      /i\s+do\s+not\s+have\s+opinions/i,
+      /i\s+am\s+not\s+human/i
+    ];
 
-  // Remove code blocks (multiline)
-  strippedText = strippedText.replace(/```[\s\S]*?```/g, '');
+    this.generalCapabilities = [
+      /i\s+can\s+help\s+with\s+(anything|everything|various|many|a\s+wide\s+range)/i,
+      /i\s+can\s+assist\s+with\s+(a\s+wide\s+range|various|many|anything|everything)/i,
+      /my\s+capabilities\s+include/i,
+      /i\s+can\s+perform\s+(various|many|different)\s+tasks/i,
+      /i\s+can\s+answer\s+questions\s+on\s+(a\s+wide\s+range|various|many|any\s+topic)/i,
+      /i\s+have\s+knowledge\s+(of|about)\s+(many|various|different|all)\s+topics/i,
+      /i\s+can\s+generate\s+text/i,
+      /i\s+can\s+understand\s+and\s+respond/i,
+      /i\s+am\s+designed\s+to/i,
+      /i\s+can\s+process\s+information/i
+    ];
+  }
 
-  // Remove headers
-  strippedText = strippedText.replace(/^#+\s*(.*)/gm, '$1');
+  isIdentityQuestion(text) {
+    return this.identityTriggers.some(pattern => pattern.test(text));
+  }
 
-  // Remove list markers
-  strippedText = strippedText.replace(/^[\*\-+]\s+/gm, '');
-  strippedText = strippedText.replace(/^\d+\.\s+/gm, '');
+  getIdentityResponse() {
+    return this.identityResponses[Math.floor(Math.random() * this.identityResponses.length)];
+  }
 
-  // Remove blockquotes
-  strippedText = strippedText.replace(/^>\s*/gm, '');
+  containsForbiddenTerms(text) {
+    return this.forbiddenTerms.some(pattern => pattern.test(text));
+  }
 
-  return strippedText.trim();
-};
+  containsGeneralCapabilities(text) {
+    return this.generalCapabilities.some(pattern => pattern.test(text));
+  }
 
-// Route to test server
+  cleanResponse(response) {
+    // Remove markdown formatting
+    let cleaned = response
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/__(.*?)__/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/_(.*?)_/g, '$1')
+      .replace(/`(.*?)`/g, '$1')
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/^#+\s*(.*)/gm, '$1')
+      .replace(/^[\*\-\+]\s+/gm, '')
+      .replace(/^\d+\.\s+/gm, '')
+      .replace(/^>\s*/gm, '')
+      .trim();
+
+    return cleaned;
+  }
+
+  enforcePersona(userInput, agentResponse) {
+    const cleanInput = userInput.toLowerCase().trim();
+    let cleanResponse = this.cleanResponse(agentResponse);
+
+    // Handle identity questions
+    if (this.isIdentityQuestion(cleanInput)) {
+      return this.getIdentityResponse();
+    }
+
+    // Check if response contains forbidden terms
+    if (this.containsForbiddenTerms(cleanResponse)) {
+      return this.getIdentityResponse();
+    }
+
+    // Check if response contains general AI capabilities
+    if (this.containsGeneralCapabilities(cleanResponse)) {
+      return "As Arshiha from Arvion Tech, I focus specifically on helping you with our products and services. What would you like to know about Arvion Tech?";
+    }
+
+    // Check if response indicates no knowledge
+    if (cleanResponse.includes('__NO_RELEVANT_INFO__') || 
+        cleanResponse.toLowerCase().includes("i don't have") ||
+        cleanResponse.toLowerCase().includes("i don't know") ||
+        cleanResponse.toLowerCase().includes("i'm not sure") ||
+        cleanResponse.toLowerCase().includes("i cannot find")) {
+      return this.fallbackResponse;
+    }
+
+    return cleanResponse;
+  }
+}
+
+const personaGuard = new PersonaGuard();
+
 app.get('/', (req, res) => {
-  res.send('Hello World');
+  res.json({ 
+    message: 'Arshiha - Arvion Tech Customer Support Agent',
+    status: 'active'
+  });
 });
 
-// POST route to generate response from agent
 app.post('/generate', async (req, res) => {
   const { prompt, thread_id } = req.body;
 
-  // Validate the input
   if (!prompt || !thread_id) {
-    logError('Prompt or thread_id is missing');
-    return res.status(400).json({ error: 'Prompt or thread_id is missing' });
+    return res.status(400).json({ 
+      error: 'Both prompt and thread_id are required' 
+    });
   }
 
-  console.log(`[INFO] Received request for thread_id: ${thread_id}, prompt: ${prompt}`);
+  console.log(`[${new Date().toISOString()}] Request - Thread: ${thread_id}, Prompt: "${prompt}"`);
 
   try {
-    // Invoke agent to process the prompt
+    // First check if it's an identity question
+    if (personaGuard.isIdentityQuestion(prompt)) {
+      const response = personaGuard.getIdentityResponse();
+      console.log(`[${new Date().toISOString()}] Identity Response: "${response}"`);
+      return res.json({ content: response });
+    }
+
+    // Invoke the agent
     const result = await agent.invoke(
       {
         messages: [{ role: 'user', content: prompt }],
@@ -72,22 +182,28 @@ app.post('/generate', async (req, res) => {
       }
     );
 
-    if (result && result.messages && result.messages.length > 0) {
-      let messageContent = result.messages.at(-1)?.content;
-      messageContent = stripMarkdown(messageContent); // Apply markdown stripping
-      console.log(`[INFO] Generated response: ${messageContent}`);
-      return res.json({ content: messageContent });
-    } else {
-      logError('Agent response is invalid or empty');
-      return res.status(500).json({ error: 'No valid response from agent' });
+    if (!result?.messages?.length) {
+      return res.status(500).json({ 
+        error: 'No response from agent' 
+      });
     }
+
+    const rawResponse = result.messages.at(-1)?.content || '';
+    const finalResponse = personaGuard.enforcePersona(prompt, rawResponse);
+
+    console.log(`[${new Date().toISOString()}] Final Response: "${finalResponse}"`);
+    
+    res.json({ content: finalResponse });
+
   } catch (error) {
-    logError(`Error invoking agent for thread_id: ${thread_id}`, error);
-    return res.status(500).json({ error: error.message });
+    console.error(`[${new Date().toISOString()}] Error:`, error);
+    res.status(500).json({ 
+      error: 'I apologize, but I encountered an issue. Please try again or contact Arvion Tech support directly.' 
+    });
   }
 });
 
-
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`Arshiha Customer Support Agent running on port ${port}`);
 });
+
