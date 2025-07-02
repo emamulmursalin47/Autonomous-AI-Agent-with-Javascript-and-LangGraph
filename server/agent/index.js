@@ -17,6 +17,33 @@ const logError = (message, error) => {
   console.error(`[ERROR] ${new Date().toISOString()} - ${message}`, error);
 };
 
+// Utility function to strip Markdown from text
+const stripMarkdown = (text) => {
+  // Remove bold and italics
+  let strippedText = text.replace(/\*\*(.*?)\*\*/g, '$1'); // **bold**
+  strippedText = strippedText.replace(/__(.*?)__/g, '$1'); // __bold__
+  strippedText = strippedText.replace(/\*(.*?)\*/g, '$1');   // *italics*
+  strippedText = strippedText.replace(/_(.*?)_/g, '$1');   // _italics_
+
+  // Remove inline code blocks
+  strippedText = strippedText.replace(/`(.*?)`/g, '$1');
+
+  // Remove code blocks (multiline)
+  strippedText = strippedText.replace(/```[\s\S]*?```/g, '');
+
+  // Remove headers
+  strippedText = strippedText.replace(/^#+\s*(.*)/gm, '$1');
+
+  // Remove list markers
+  strippedText = strippedText.replace(/^[\*\-+]\s+/gm, '');
+  strippedText = strippedText.replace(/^\d+\.\s+/gm, '');
+
+  // Remove blockquotes
+  strippedText = strippedText.replace(/^>\s*/gm, '');
+
+  return strippedText.trim();
+};
+
 // Route to test server
 app.get('/', (req, res) => {
   res.send('Hello World');
@@ -46,7 +73,8 @@ app.post('/generate', async (req, res) => {
     );
 
     if (result && result.messages && result.messages.length > 0) {
-      const messageContent = result.messages.at(-1)?.content;
+      let messageContent = result.messages.at(-1)?.content;
+      messageContent = stripMarkdown(messageContent); // Apply markdown stripping
       console.log(`[INFO] Generated response: ${messageContent}`);
       return res.json({ content: messageContent });
     } else {

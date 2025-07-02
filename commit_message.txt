@@ -1,5 +1,0 @@
-feat: implement Express server and basic frontend
-
-- Expose the LangGraph agent as an API endpoint.
-- Create a simple HTML frontend to interact with the agent.
-- Add dotenv to manage environment variables.
