@@ -1,0 +1,11 @@
+
+**Arvion Tech - Frequently Asked Questions**
+
+**Q: What kind of services does Arvion Tech provide?**
+A: Arvion Tech specializes in providing cutting-edge, scalable cloud infrastructure solutions, custom enterprise software development, and AI-driven data analytics platforms. We help businesses modernize their technology stack.
+
+**Q: How can I get technical support?**
+A: For technical support, you can create a support ticket directly through our client portal at support.arviontech.com or by using the `createSupportTicket` function available through me. Our support team is available 24/7.
+
+**Q: What are your support hours?**
+A: Our technical support team is available 24 hours a day, 7 days a week, 365 days a year. Our sales and billing departments are available from 9 AM to 6 PM, Monday to Friday.

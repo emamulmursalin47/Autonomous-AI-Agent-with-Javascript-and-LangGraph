@@ -1,0 +1,16 @@
+
+**Arvion Tech - Product Offerings**
+
+**1. CloudSphere Suite:**
+   - A comprehensive, managed Kubernetes platform that allows businesses to deploy, manage, and scale containerized applications with ease.
+   - Features include automated scaling, CI/CD integration, and advanced security monitoring.
+   - Ideal for businesses looking to adopt a microservices architecture.
+
+**2. Synapse ERP:**
+   - A custom-built Enterprise Resource Planning software for medium to large enterprises.
+   - Modules include HR, inventory management, financial accounting, and supply chain logistics.
+   - Fully customizable to fit specific business workflows.
+
+**3. InsightAI Analytics Platform:**
+   - An AI-powered platform that connects to various business data sources (CRM, sales data, user behavior) to provide actionable insights.
+   - Features predictive analytics, anomaly detection, and natural language querying.

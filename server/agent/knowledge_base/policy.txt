@@ -1,0 +1,16 @@
+
+**Arvion Tech - Company Policies**
+
+**1. Service Level Agreement (SLA):**
+   - We guarantee a 99.9% uptime for all our CloudSphere Suite services.
+   - Support ticket first-response time is guaranteed to be within 15 minutes for critical issues and 1 hour for standard issues.
+
+**2. Refund Policy:**
+   - For monthly subscriptions, customers can request a full refund within the first 7 days of the initial purchase.
+   - For annual contracts, refunds are prorated based on the remaining term, minus a 10% cancellation fee.
+   - No refunds are provided for custom development work once the project has commenced.
+
+**3. Data Privacy Policy:**
+   - Arvion Tech is fully GDPR and CCPA compliant.
+   - We do not share, sell, or distribute any client data to third parties.
+   - All client data is encrypted both in transit and at rest.
