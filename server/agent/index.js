@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { agent } from './agent.js';
@@ -5,16 +6,15 @@ import { agent } from './agent.js';
 const app = express();
 const port = 3001;
 
+app.use(express.static('public'));
+
 // Global middleware
 app.use(express.json());  // Middleware to parse JSON bodies
 app.use(cors({ origin: '*' }));  // Middleware to allow cross-origin requests
 
-// Flag to prevent processing the same request multiple times
-let isRequestProcessing = false;
-
 // Utility function to log errors
-const logError = (message) => {
-  console.error(`[ERROR] ${new Date().toISOString()} - ${message}`);
+const logError = (message, error) => {
+  console.error(`[ERROR] ${new Date().toISOString()} - ${message}`, error);
 };
 
 // Route to test server
@@ -24,20 +24,11 @@ app.get('/', (req, res) => {
 
 // POST route to generate response from agent
 app.post('/generate', async (req, res) => {
-  if (isRequestProcessing) {
-    logError('Request is already being processed.');
-    return res.status(400).json({ error: 'Request is already being processed' });
-  }
-
-  // Set the flag to true to prevent further requests from being processed
-  isRequestProcessing = true;
-
   const { prompt, thread_id } = req.body;
 
   // Validate the input
   if (!prompt || !thread_id) {
     logError('Prompt or thread_id is missing');
-    isRequestProcessing = false;
     return res.status(400).json({ error: 'Prompt or thread_id is missing' });
   }
 
@@ -54,9 +45,6 @@ app.post('/generate', async (req, res) => {
       }
     );
 
-    // Reset the processing flag
-    isRequestProcessing = false;
-
     if (result && result.messages && result.messages.length > 0) {
       const messageContent = result.messages.at(-1)?.content;
       console.log(`[INFO] Generated response: ${messageContent}`);
@@ -66,9 +54,7 @@ app.post('/generate', async (req, res) => {
       return res.status(500).json({ error: 'No valid response from agent' });
     }
   } catch (error) {
-    
-    isRequestProcessing = false;
-    logError(`Error invoking agent: ${error.message}`);
+    logError(`Error invoking agent for thread_id: ${thread_id}`, error);
     return res.status(500).json({ error: error.message });
   }
 });

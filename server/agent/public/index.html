@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent</title>
+</head>
+<body>
+    <h1>AI Agent</h1>
+    <form id="prompt-form">
+        <input type="text" id="prompt" placeholder="Enter your prompt" required>
+        <button type="submit">Send</button>
+    </form>
+    <div id="response"></div>
+
+    <script>
+        const form = document.getElementById('prompt-form');
+        const promptInput = document.getElementById('prompt');
+        const responseDiv = document.getElementById('response');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const prompt = promptInput.value;
+            const thread_id = '42'; // You can generate a unique thread_id for each conversation
+
+            const response = await fetch('http://localhost:3001/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ prompt, thread_id })
+            });
+
+            const data = await response.json();
+            responseDiv.innerHTML = data.content;
+        });
+    </script>
+</body>
+</html>
