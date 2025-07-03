@@ -1,0 +1,5 @@
+fix: Restore and integrate PersonaGuard in index.js
+
+- Rewrote index.js to re-include the PersonaGuard for robust persona enforcement.
+- Ensured correct knowledge base loading and passing to agent via ingest.js and setKnowledgeBaseDocuments.
+- Verified agent.js remains in its correct, specialized state.
